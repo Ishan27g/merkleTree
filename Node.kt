@@ -2,14 +2,16 @@
 class Node (private var tree: MerkleTree.Tree){
     private var leaf: Boolean = false
     private var dup: Boolean = false
-    lateinit var content : Content
-    lateinit var parent: Node
+    var content : Content? = null
+    var parent: Node? = null
     lateinit var left:Node
     lateinit var right: Node
     lateinit var hash: byteArray
 
-    constructor(_tree:MerkleTree.Tree, _content:Content) : this(_tree){
-        this.hash = _content.calculateHash()
+    constructor(_tree:MerkleTree.Tree, _content:Content?) : this(_tree){
+        if (_content != null) {
+            this.hash = _content.calculateHash()
+        }
         this.content = _content
         this.leaf = true
     }
@@ -19,7 +21,7 @@ class Node (private var tree: MerkleTree.Tree){
 
     fun verify() : byteArray{
         if (this.leaf){
-            return this.content.calculateHash()
+            return this.content!!.calculateHash()
         }
         return calculateHash()
     }

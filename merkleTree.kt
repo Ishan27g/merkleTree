@@ -18,9 +18,9 @@ class MerkleTree {
             val last = Node(leafs.last())
             leafs.add(last)
         }
-        for (l in leafs){
-            println(l.content.toString())
-        }
+//        for (l in leafs){
+//            println(l.content.toString())
+//        }
         this.tree.root = this.tree.buildLeaves(leafs)
         this.tree.rootHash = this.tree.root.hash
 
@@ -57,7 +57,7 @@ class MerkleTree {
     fun rebuildTree(){
         val cs= mutableListOf<Content>()
         for (l in this.tree.leafs){
-            cs.add(l.content)
+            cs.add(l.content!!)
         }
         buildWithContent(cs)
     }
@@ -70,12 +70,14 @@ class MerkleTree {
         for (leaf in this.tree.leafs){
             if (leaf.content == c){
                 var cParent = leaf.parent
-                if (cParent.left.hash == leaf.hash){
-                    merklePath.add(Pair(cParent.right.hash, 1))
-                }else{
-                    merklePath.add(Pair(cParent.left.hash, 0))
+                while (cParent != null){
+                    if (cParent.left.hash == leaf.hash){
+                        merklePath.add(Pair(cParent.right.hash, 1))
+                    }else{
+                        merklePath.add(Pair(cParent.left.hash, 0))
+                    }
+                    cParent = cParent.parent
                 }
-                // cParent = cParent.parent
                 return merklePath
             }
         }
