@@ -18,19 +18,32 @@ class Node (private var tree: MerkleTree.Tree){
     constructor(_node:Node) : this(_node.tree, _node.content) {
         this.dup = true
     }
+    fun getNodeHash() : byteArray{
+        if (this.leaf){
+            return this.content!!.calculateHash()
+        }
+        val hashFunc = this.tree.HashFunc()
+        return hashFunc(this.left.hash, this.right.hash)
+    }
 
     fun verify() : byteArray{
         if (this.leaf){
             return this.content!!.calculateHash()
         }
-        return calculateHash()
+        return verifyNode()
     }
 
-    fun calculateHash(): byteArray {
-        val l = this.left.verify()
-        val r = this.right.verify()
+    private fun verifyNode(): byteArray {
+        val l = this.left!!.verify()
+        val r = this.right!!.verify()
         val hashFunc = this.tree.HashFunc()
 
         return hashFunc(l, r)
+    }
+    fun Child(of: Node) {
+        this.parent = of
+        this.parent?.left = of.left
+        this.parent?.right = of.right
+        this.parent?.hash = of.hash
     }
 }

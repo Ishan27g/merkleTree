@@ -14,12 +14,21 @@ fun main() {
     merkleTree.buildWithContent(content)
     println(merkleTree.getRootHash())
     println(merkleTree.verifyTree())
+    println(merkleTree.verifyContent(content[1]))
+    println(merkleTree.getMerklePath(content[1]))
 
-    var r = MerkleTree()
-    r.buildWithContent(content.subList(0,2))
-    println(r.getRootHash())
-    println(r.verifyTree())
-
-
-    println(merkleTree.getMerklePath(content[7]))
+    for (i in 0 until content.size){
+        val path = merkleTree.getMerklePath(content[i])!!
+        var hash = merkleTree.getTree().leafs.get(i).getNodeHash()
+        for (p in path){
+            if (p.index == 1){
+                hash = merkleTree.getTree().HashFunc()(hash, p.neighbour)
+            }else{
+                hash = merkleTree.getTree().HashFunc()(p.neighbour, hash)
+            }
+        }
+        if (merkleTree.getRootHash() == hash){
+            println("WOWOWOWOW")
+        }
+    }
 }

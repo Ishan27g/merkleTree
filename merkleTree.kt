@@ -34,16 +34,16 @@ class MerkleTree {
     }
     fun verifyContent(c :Content):Boolean{
         for (leaf in this.tree.leafs){
-            if (leaf.hash == c.calculateHash()){
-                var cParent = leaf.parent
+            if (leaf.content?.equals(c) == true){
+                var cParent= leaf.parent
                 while (cParent != null){
-                    val rightB = cParent.right.calculateHash()
-                    val leftB = cParent.left.calculateHash()
+                    val rightB = cParent.right.getNodeHash()
+                    val leftB = cParent.left.getNodeHash()
                     val hashFunc = this.tree.HashFunc()
-                    if (hashFunc(leftB,rightB) == cParent.hash){
+                    if (hashFunc(leftB,rightB) != cParent.hash){
                         return false
                     }
-                    cParent = cParent.parent
+                    cParent.parent.also { cParent = it }// cParent = cParent.parent
                 }
                 return true
             }
@@ -65,17 +65,20 @@ class MerkleTree {
         buildWithContent(cs)
     }
 
-    fun getMerklePath(c :Content): List<Pair<byteArray,Int>>?{
-        var merklePath = mutableListOf <Pair<byteArray, Int>>()
-        for (leaf in this.tree.leafs){
+    fun getMerklePath(c :Content): List<MerklePath>?{
+        var merklePath = mutableListOf <MerklePath>()
+        for (i in 0 until this.tree.leafs.size){
+            var leaf = this.tree.leafs.get(i)
             if (leaf.content == c){
+                var nextLeaf = leaf
                 var cParent = leaf.parent
                 while (cParent != null){
-                    if (cParent.left.hash == leaf.hash){
-                        merklePath.add(Pair(cParent.right.hash, 1))
+                    if (cParent.left.hash == nextLeaf.hash){
+                        merklePath.add(MerklePath(cParent.right.hash, 1))
                     }else{
-                        merklePath.add(Pair(cParent.left.hash, 0))
+                        merklePath.add(MerklePath(cParent.left.hash, 0))
                     }
+                    nextLeaf = cParent
                     cParent = cParent.parent
                 }
                 return merklePath
@@ -104,38 +107,36 @@ class MerkleTree {
             }
             return false
         }
-        internal fun buildLeaves(leafs: MutableList<Node>) : Node{
+        internal fun buildLeaves(lf: MutableList<Node>) : Node{
             val nodes = mutableListOf<Node>()
             val hf = this.HashFunc()
-            for (i in 0 until leafs.size step 2){
-                val left = i
-                var right= i + 1
-                if (i+1 == leafs.size){
-                    right = i
+            for (left in 0 until lf.size step 2){
+                var right= left + 1
+                if (left+1 == lf.size){
+                    right = left
                 }
                 val node = Node(this)
 
-                node.left = leafs[left]
-                node.right = leafs[right]
-                node.hash = hf(leafs[left].hash, leafs[right].hash)
+                node.left = lf[left]
+                node.right = lf[right]
+                node.hash = hf(lf[left].hash, lf[right].hash)
 
                 nodes.add(node)
-                //          println(node.left.content.toString())
-                leafs[left].parent = node
-                leafs[right].parent = node
-//
-//            var l = mutableListOf<Node>()
-//            l.addAll(this.leafs)
-//            l.addAll(leafs)
-                this.leafs.addAll(leafs)
 
-                if (leafs.size == 2){
+                lf[left].Child(node)
+                lf[right].Child(node)
+
+                this.leafs.add(lf[left])
+                this.leafs.add(lf[right])
+
+                if (lf.size == 2){
                     return node
                 }
 
             }
             return buildLeaves(nodes)
         }
-
     }
 }
+
+data class MerklePath(val neighbour: byteArray, val index: Int) {}
