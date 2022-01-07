@@ -1,117 +1,127 @@
-
-
-import kotlin.collections.listOf
+import java.lang.Exception
 import kotlin.collections.mutableListOf
 
-typealias byteArray String
+typealias byteArray = String
 
 class Tree {
     lateinit var root : Node
-    lateinit var rootHash : String
+    lateinit var rootHash : byteArray
     lateinit var leafs: MutableList<Node>
 
     internal fun calculate(a: String, b: String, operation:(String, String) -> String): String {
         return operation(a, b)                                       
     }
-    internal fun noHash(a:String, b:String) : byteArray{
-        return a + b
+    private fun noHash(a:String, b:String) : byteArray{
+        return a.plus(b)
     }
     fun HashFunc() : (a:String, b:String) -> byteArray{
         // var a= calculate("a", "b", ::noHash)
         return ::noHash   
     }
-    internal fun buildIntermediate(leafs: MutableList<Node>) : Node{
-        var nodes = mutableListOf<Node>()
-        var hf = this.HashFunc()
-        for (i in 0..leafs.size-1 step 2){
-            var left = i,
+    fun isEmpty() : Boolean{
+        if (this.rootHash == "" || this.leafs.isEmpty()){
+            return true
+        }
+        return false
+    }
+    internal fun buildLeaves(leafs: MutableList<Node>) : Node{
+        val nodes = mutableListOf<Node>()
+        val hf = this.HashFunc()
+        for (i in 0 until leafs.size step 2){
+            val left = i
             var right= i + 1
-            var node = Node(this)
+            if (i+1 == leafs.size){
+                right = i
+            }
+            val node = Node(this)
 
-            node.left = leafs.get(left)
-            node.right = leafs.get(right)
-            node.hash = hf(leafs.get(left).hash, leafs.get(right).hash)
+            node.left = leafs[left]
+            node.right = leafs[right]
+            node.hash = hf(leafs[left].hash, leafs[right].hash)
 
             nodes.add(node)
 
-            var leftNode = leafs.get(left)
-            var rightNode = leafs.get(left)
-            leftNode.parent = node
-            rightNode.parent = node
-            leafs.set(left, leftNode)
-            leafs.set(right, rightNode)
+            leafs[left].parent = node
+            leafs[right].parent = node
+
+            this.leafs = leafs
 
             if (leafs.size == 2){
                 return node
             }
             
         }
-        return buildIntermediate(nodes)
+        return buildLeaves(nodes)
     } 
+
+}
+
+
+class MerkleTree {
+    private lateinit var tree: Tree
     fun buildWithContent(cs : List<Content>){
         if (cs.isEmpty()) {
-            return
+            throw IllegalArgumentException("No contents")
         }
-        var leafs = mutableListOf<Node>()
-        for (c in cs){
-            var node = Node(this)
-            node.content = c
-            node.hash = c.calculateHash()
-            node.leaf = true
-            leafs.add(node)
-        }
+        this.tree = Tree()
+        val leafs = mutableListOf<Node>()
+        cs.mapTo(leafs) { c: Content -> Node(tree, c) }
         if (leafs.size %2 == 1){
-            val last = leafs.last()
-            last.dup = true
+            val last = Node(leafs.last())
             leafs.add(last)
         }
-        this.root = buildIntermediate(leafs) : 
+        this.tree.root = this.tree.buildLeaves(leafs)
+        this.tree.rootHash = this.tree.root.hash
+        if (this.tree.isEmpty()){
+            throw Exception("Could not build tree")
+        }
     }
+    fun verifyTree() : Boolean{
+        val calculated = this.tree.root.verify()
+        return this.tree.rootHash == calculated
+    }
+    fun verifyContent(c :Content):Boolean{
+        for (leaf in this.tree.leafs){
+            if (leaf.hash == c.calculateHash()){
+                var cParent = leaf.parent
+                while (cParent != null){
+                    val rightB = cParent.right.calculateHash()
+                    val leftB = cParent.left.calculateHash()
+                    val hashFunc = this.tree.HashFunc()
+                    if (hashFunc(leftB,rightB) == cParent.hash){
+                        return false
+                    }
+                    cParent = cParent.parent
+                }
+                return true
+            }
+        }
+        return false
+    }
+    fun getRootHash() : byteArray{
+        return this.tree.rootHash
+    }
+    fun get() : Tree {return this.tree}
 }
 
-class Node (_tree:Tree){
-    var tree: Tree
-    lateinit var parent: Node
-    lateinit var left:Node
-    lateinit var right: Node
-    var leaf: Boolean = false
-    var dup: Boolean = false
-    lateinit var hash: byteArray
-    lateinit var content : Content
-    init {
-        this.tree = _tree
-    }
-}
-
-sealed interface Content {
-    fun calculateHash(): byteArray
-    fun equals(to:strContent) : Boolean
-}
-
-sealed class MerkleTree {
-    fun NewTree(c : MutableList<Content>): Tree{
-        var hashFunc = Tree().
-    }
-}
-
-class strContent(_data : String) : Content {
-    val data: String
-    init {
-        this.data = _data
-    }
-    override fun calculateHash() : byteArray{
-        return this.data
-    }
-    override fun equals(to: strContent): Boolean{
-        return this.data === to.data
-    }
-}
 
 fun main() {
-    var content = mutableListOf<strContent>()
-    content.add(strContent("1"))
-    content.add(strContent("2"))
-    content.add(strContent("3"))
-    content.add(strContent("4"))
+    var content = mutableListOf<StrContent>()
+    content.add(StrContent("1"))
+    content.add(StrContent("2"))
+    content.add(StrContent("3"))
+    content.add(StrContent("4"))
 
     var merkleTree = MerkleTree()
+    merkleTree.buildWithContent(content)
+    println(merkleTree.getRootHash())
+
+    println(merkleTree.verifyTree())
+
+    var r = MerkleTree()
+    r.buildWithContent(content.subList(0,2))
+    println(r.getRootHash())
+
+    println(r.verifyTree())
+
+}
