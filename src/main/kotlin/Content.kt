@@ -1,10 +1,11 @@
-// Generic interface to describe contents of the merkle tree
+// Generic interface to describe contents of the merke
 sealed interface Content {
     var data: String
     fun calculateHash(): byteArray
     fun equals(to: Content) : Boolean
     override fun toString(): String
 }
+
 class StrContent(override var data: String) : Content {
     override fun calculateHash() : byteArray{
         return this.data
