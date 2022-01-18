@@ -1,8 +1,18 @@
 ## Merkle Tree in Kotlin
 
+wip
+
 A merkle tree implementation
 
 ```kotlin
+// implement Content interface to describe contents of the merke
+sealed interface Content {
+    var data: String
+    fun calculateHash(): byteArray // todo `typealias byteArray = String`
+    fun equals(to: Content) : Boolean
+    override fun toString(): String
+}
+// example (without hash)
 class StrContent(override var data: String) : Content {
     override fun calculateHash() : byteArray{
         return this.data
@@ -26,6 +36,7 @@ fun main() {
     println(merkleTree.verifyTree())
     println(merkleTree.verifyContent(content[1]))
 
+    // verify merkle path for data
     for (i in 0 until content.size){
         val path = merkleTree.getMerklePath(content[i])!!
         var hash = merkleTree.getTree().leafs.get(i).getNodeHash()
@@ -37,7 +48,7 @@ fun main() {
             }
         }
         if (merkleTree.getRootHash() != hash){
-            println("mismatch")
+            println("path mismatch")
         }
     }
 }
