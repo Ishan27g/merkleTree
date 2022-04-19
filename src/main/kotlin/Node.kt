@@ -33,17 +33,16 @@ class Node (private var tree: Tree) : INode {
         if (this.leaf){
             return this.content!!.calculateHash()
         }
-        val hashFunc = this.tree.HashFunc()
-        return hashFunc(this.left.hash, this.right.hash)
+        return this.tree.ConcatHash()(this.left.hash, this.right.hash)
     }
 
     override fun verify(): byteArray {
         if (this.leaf) {
             return this.content!!.calculateHash()
         }
-        val l = left!!.verify()
-        val r = right!!.verify()
-        return tree.HashFunc()(l, r)
+        val l = left.verify()
+        val r = right.verify()
+        return this.tree.ConcatHash()(l, r) // todo toString
     }
 
     override fun child(of: Node) {

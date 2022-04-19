@@ -5,25 +5,17 @@ object Tree {
     lateinit var rootHash : byteArray
     var leafs: MutableList<Node> = mutableListOf()
 
-    internal fun calculate(a: String, b: String, operation:(String, String) -> String): String {
-        return operation(a, b)
-    }
-    private fun noHash(a:String, b:String) : byteArray {
+    private fun concatHash(a:byteArray, b:byteArray) : byteArray {
         return a.plus(b)
     }
-    fun HashFunc() : (a:String, b:String) -> byteArray {
-        // var a= calculate("a", "b", ::noHash)
-        return ::noHash
+    fun ConcatHash() : (a:byteArray, b:byteArray) -> byteArray {
+        return ::concatHash
     }
     fun isEmpty() : Boolean{
-        if (this.rootHash == "" || this.leafs.isEmpty()){
-            return true
-        }
-        return false
+        return this.rootHash == "" || this.leafs.isEmpty()
     }
     internal fun buildLeaves(lf: MutableList<Node>) : Node {
         val nodes = mutableListOf<Node>()
-        val hf = this.HashFunc()
         for (left in 0 until lf.size step 2){
             var right= left + 1
             if (right == lf.size){
@@ -33,7 +25,7 @@ object Tree {
 
             node.left = lf[left]
             node.right = lf[right]
-            node.hash = hf(lf[left].hash, lf[right].hash)
+            node.hash = this.ConcatHash()(lf[left].hash, lf[right].hash)
             nodes.add(node)
 
             lf[left].child(node)

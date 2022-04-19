@@ -9,16 +9,16 @@ A merkle tree implementation
 sealed interface Content {
     var data: String
     fun calculateHash(): byteArray // todo `typealias byteArray = String`
-    fun equals(to: Content) : Boolean
     override fun toString(): String
 }
-// example (without hash)
+// example (without hash)// Example class with sha-256 hash strategy
 class StrContent(override var data: String) : Content {
     override fun calculateHash() : byteArray{
-        return this.data
-    }
-    override fun equals(to: Content): Boolean{
-        return this.data == (to.data)
+        // return data
+        return MessageDigest
+            .getInstance("SHA-256")
+            .digest(data.toByteArray())
+            .fold("", { str, it -> str + "%02x".format(it) })
     }
     override fun toString(): String {
         return this.data
@@ -37,19 +37,19 @@ fun main() {
     println(merkleTree.verifyContent(content[1]))
 
     // verify merkle path for data
-    for (i in 0 until content.size){
-        val path = merkleTree.getMerklePath(content[i])!!
+    for (i in 0 until content.size -1){
+        var path = merkleTree.getMerklePath(content[i])
         var hash = merkleTree.getTree().leafs.get(i).getNodeHash()
-        for (p in path){
-            if (p.position == 1){
-                hash = merkleTree.getTree().HashFunc()(hash, p.neighbour)
-            }else{
-                hash = merkleTree.getTree().HashFunc()(p.neighbour, hash)
+        if (path != null) {
+            for (p in path){
+                if (p.position == Position.Left){
+                    hash = merkleTree.getTree().ConcatHash()(hash, p.neighbour)
+                }else{
+                    hash = merkleTree.getTree().ConcatHash()(p.neighbour, hash)
+                }
             }
         }
-        if (merkleTree.getRootHash() != hash){
-            println("path mismatch")
-        }
+        assertTrue(merkleTree.getRootHash()==hash)
     }
 }
 ```

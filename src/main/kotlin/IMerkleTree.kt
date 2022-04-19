@@ -11,4 +11,7 @@ interface IMerkleTree {
 }
 typealias byteArray = String
 
-data class MerklePath(val neighbour: byteArray, val position: Int) {}
+data class MerklePath(val neighbour: byteArray, val position: Position) {}
+enum class Position {
+    Left, Right
+}

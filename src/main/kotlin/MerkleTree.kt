@@ -37,8 +37,7 @@ class MerkleTree : IMerkleTree {
                 while (cParent != null){
                     val rightB = cParent.right.getNodeHash()
                     val leftB = cParent.left.getNodeHash()
-                    val hashFunc = this.tree.HashFunc()
-                    if (hashFunc(leftB,rightB) != cParent.hash){
+                    if (this.tree.ConcatHash()(leftB,rightB) != cParent.hash){
                         return false
                     }
                     cParent = cParent.parent
@@ -49,12 +48,12 @@ class MerkleTree : IMerkleTree {
         return false
     }
     override fun getRootHash() : byteArray{
-        return this.tree?.rootHash
+        return this.tree.rootHash
     }
-    override fun getTree() : Tree {return this?.tree}
+    override fun getTree() : Tree {return this.tree}
     override fun rebuild(){
         val cs= mutableListOf<Content>()
-        for (l in this.tree?.leafs){
+        for (l in this.tree.leafs){
             cs.add(l.content!!)
         }
         buildFrom(cs)
@@ -69,9 +68,9 @@ class MerkleTree : IMerkleTree {
                 var cParent = leaf.parent
                 while (cParent != null){
                     if (cParent.left.hash == nextLeaf.hash){
-                        merklePath.add(MerklePath(cParent.right.hash, 1))
+                        merklePath.add(MerklePath(cParent.right.hash, Position.Left))
                     }else{
-                        merklePath.add(MerklePath(cParent.left.hash, 0))
+                        merklePath.add(MerklePath(cParent.left.hash, Position.Right))
                     }
                     nextLeaf = cParent
                     cParent = cParent.parent

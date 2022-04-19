@@ -1,17 +1,19 @@
+import java.security.MessageDigest
+
 // Generic interface to describe contents of the merke
 sealed interface Content {
     var data: String
     fun calculateHash(): byteArray
-    fun equals(to: Content) : Boolean
     override fun toString(): String
 }
 
-class StrContent(override var data: String) : Content {
+// Example class with sha-256 hash strategy
+class Content_Sha256(override var data: String) : Content {
     override fun calculateHash() : byteArray{
-        return this.data
-    }
-    override fun equals(to: Content): Boolean{
-        return this.data == (to.data)
+        return MessageDigest
+            .getInstance("SHA-256")
+            .digest(data.toByteArray())
+            .fold("", { str, it -> str + "%02x".format(it) })
     }
     override fun toString(): String {
         return this.data
