@@ -5,13 +5,13 @@ wip
 A merkle tree implementation
 
 ```kotlin
-// implement Content interface to describe contents of the merke
+// implement `Content` interface to describe contents of the merke
 sealed interface Content {
     var data: String
     fun calculateHash(): byteArray // todo `typealias byteArray = String`
     override fun toString(): String
 }
-// example (without hash)// Example class with sha-256 hash strategy
+// Example class implementing the `Content` interface with sha-256 hash strategy
 class StrContent(override var data: String) : Content {
     override fun calculateHash() : byteArray{
         // return data
