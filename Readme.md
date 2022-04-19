@@ -1,6 +1,4 @@
-## Merkle Tree in Kotlin
-
-wip
+# Merkle Tree in Kotlin
 
 A merkle tree implementation
 
@@ -8,13 +6,12 @@ A merkle tree implementation
 // implement `Content` interface to describe contents of the merke
 sealed interface Content {
     var data: String
-    fun calculateHash(): byteArray // todo `typealias byteArray = String`
+    fun calculateHash(): byteArray
     override fun toString(): String
 }
 // Example class implementing the `Content` interface with sha-256 hash strategy
 class StrContent(override var data: String) : Content {
     override fun calculateHash() : byteArray{
-        // return data
         return MessageDigest
             .getInstance("SHA-256")
             .digest(data.toByteArray())
@@ -26,8 +23,8 @@ class StrContent(override var data: String) : Content {
 }
 
 fun main() {
-    var content = mutableListOf<StrContent>(StrContent("1"), StrContent("2"),StrContent("3"),StrContent("4"),
-        StrContent("5"),StrContent("6"),StrContent("7"),StrContent("8"))
+    var content = mutableListOf<StrContent>(StrContent("1"), StrContent("2"),StrContent("3"),
+        StrContent("4"),StrContent("5"),StrContent("6"),StrContent("7"),StrContent("8"))
 
     var merkleTree = MerkleTree()
     merkleTree.buildFrom(content)
